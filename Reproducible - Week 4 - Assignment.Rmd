@@ -1,0 +1,89 @@
+---
+title: "Effects of wheather phenomena in the USA on population health and economincs"
+author: "Daniel Jungen"
+date: "29 Oktober 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache =  TRUE)
+```
+
+## Effects of weather phenomena on health and economics
+
+In this report we address the questions:
+
+- Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+
+- Across the United States, which types of events have the greatest economic consequences?
+
+The analysis is based on data of the NOAA Storm Database. The datafile is assumed to be downloaded to the working directory of R and namend "data.csv".
+
+It can be found on <https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2>.
+
+# Summary
+
+```{r echo =FALSE}
+library(dplyr)
+
+storm_data<-read.csv("data.csv")
+
+pop_health<-data.frame(cbind(data.frame(storm_data$EVTYPE), data.frame(storm_data$FATALITIES), data.frame(storm_data$INJURIES)))
+
+pop_health_fat<-aggregate(pop_health$storm_data.FATALITIES, by=list(evtype=pop_health$storm_data.EVTYPE), FUN=sum )
+pop_health_inj<-aggregate(pop_health$storm_data.INJURIES, by=list(evtype=pop_health$storm_data.EVTYPE), FUN=sum )
+
+names(pop_health_fat)<-c("EVTYPE", "FATALITIES")
+names(pop_health_inj)<-c("EVTYPE", "INJURIES")
+
+pop_health_agg<-merge(pop_health_fat, pop_health_inj, by= "EVTYPE")
+
+pop_health_agg<-mutate(pop_health_agg, sum_casualties = pop_health_agg$FATALITIES+pop_health_agg$INJURIES)
+
+temp<-pop_health_agg[order(-pop_health_agg$FATALITIES),]
+
+```
+
+The top ten events on population health in termes of fatalities with the corresponding numbers are 
+
+```{r echo = FALSE}
+temp[1:10,1:2]
+```
+
+The same with respect to injuries returns:
+
+```{r echo = FALSE}
+
+temp<-pop_health_agg[order(-pop_health_agg$INJURIES),]
+temp[1:10,c(1,3)]
+```
+
+And taking the sum of casualties in fatalities and injuries we get
+
+```{r echo = FALSE}
+temp<-pop_health_agg[order(-pop_health_agg$sum_casualties),]
+temp[1:10,c(1,4)]
+```
+
+#Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+
+```{r echo = TRUE}
+library(dplyr)
+
+storm_data<-read.csv("data.csv")
+
+pop_health<-data.frame(cbind(data.frame(storm_data$EVTYPE), data.frame(storm_data$FATALITIES), data.frame(storm_data$INJURIES)))
+
+pop_health_fat<-aggregate(pop_health$storm_data.FATALITIES, by=list(evtype=pop_health$storm_data.EVTYPE), FUN=sum )
+pop_health_inj<-aggregate(pop_health$storm_data.INJURIES, by=list(evtype=pop_health$storm_data.EVTYPE), FUN=sum )
+
+names(pop_health_fat)<-c("EVTYPE", "FATALITIES")
+names(pop_health_inj)<-c("EVTYPE", "INJURIES")
+
+pop_health_agg<-merge(pop_health_fat, pop_health_inj, by= "EVTYPE")
+
+pop_health_agg<-mutate(pop_health_agg, sum_casualties = pop_health_agg$FATALITIES+pop_health_agg$INJURIES)
+
+top_fatalities<-data.frame(pop_health_agg[order(-pop_health_agg$FATALITIES),])[10,1:2]
+top_fatalities
+```
